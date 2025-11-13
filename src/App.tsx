@@ -1,0 +1,64 @@
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
+import Dashboard from "@/pages/Dashboard";
+import Login from "@/pages/Login";
+import Header from "@/components/Header";
+import { useState, useEffect, type JSX } from "react";
+import PedidosPage from "./pages/Pedidos";
+import Footer from "./components/Footer";
+
+function ProtectedLayout() {
+  const { user, logout } = useAuth();
+  const [page, setPage] = useState<string>("dashboard");
+
+  // Redireciona se não estiver autenticado
+  if (!user) return <Navigate to="/" replace />;
+
+  return (
+    <div className="min-h-screen bg-[#111111] text-gray-800 flex flex-col">
+      <Header page={page} setPage={setPage} />
+      <main className="flex-1 p-8 max-w-7xl mx-auto w-full">
+        {page === "dashboard" && <Dashboard />}
+        {page === "pedidos" && <PedidosPage />}
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+function PrivateRoute({ children }: { children: JSX.Element }) {
+  const { user } = useAuth();
+
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+}
+
+export default function App() {
+  // Proteção e persistência da sessão via AuthContext
+  return (
+    <Router>
+      <AuthProvider>
+        <Routes>
+          {/* Página de login */}
+          <Route path="/" element={<Login />} />
+
+          {/* Rotas protegidas */}
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <ProtectedLayout />
+              </PrivateRoute>
+            }
+          />
+
+          {/* Redirecionamento padrão */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </AuthProvider>
+    </Router>
+  );
+}
