@@ -3,12 +3,12 @@ import { AuthProvider, useAuth } from "@/context/AuthContext";
 import Dashboard from "@/pages/Dashboard";
 import Login from "@/pages/Login";
 import Header from "@/components/Header";
-import { useState, useEffect, type JSX } from "react";
+import { useState, type JSX } from "react";
 import PedidosPage from "./pages/Pedidos";
 import Footer from "./components/Footer";
 
 function ProtectedLayout() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [page, setPage] = useState<string>("dashboard");
 
   // Redireciona se não estiver autenticado

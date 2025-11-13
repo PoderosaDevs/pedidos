@@ -25,7 +25,6 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { DataTablePedidos } from "./DataTablePedidos";
 import type { Pedido } from "./types";
-import CreatableSelect from "react-select/creatable";
 
 const API_BASE =
   import.meta.env.VITE_API_URL?.replace(/\/$/, "") ?? "http://localhost:3000";
@@ -64,11 +63,11 @@ export default function PedidosPage() {
   const [loadingPedido, setLoadingPedido] = React.useState(false);
   const [loadingCliente, setLoadingCliente] = React.useState(false);
 
-  const [canais] = React.useState([
-    { value: "WhatsApp", label: "WhatsApp" },
-    { value: "Instagram", label: "Instagram" },
-    { value: "Site", label: "Site" },
-  ]);
+  // const [canais] = React.useState([
+  //   { value: "WhatsApp", label: "WhatsApp" },
+  //   { value: "Instagram", label: "Instagram" },
+  //   { value: "Site", label: "Site" },
+  // ]);
 
   // 🔹 enums mapeados com label amigável
   const situacoes = [
