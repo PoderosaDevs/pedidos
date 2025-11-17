@@ -13,6 +13,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
+  register: (nome: string, email: string, senha: string) => Promise<void>; // ⬅ ADICIONADO
   logout: () => Promise<void>;
 }
 
@@ -22,12 +23,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
 
+  // ==============================================
+  // LOGIN
+  // ==============================================
   const login = async (email: string, password: string) => {
     try {
       const res = await fetch(`${API_BASE}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // necessário para enviar/receber o cookie httpOnly
+        credentials: "include",
         body: JSON.stringify({ email, senha: password }),
       });
 
@@ -36,9 +40,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error(err?.error || "Credenciais inválidas");
       }
 
-      // Seu backend de /login retorna só { message }, então criamos um user local.
-      // Caso você implemente /usuarios/me, dá pra buscar os dados reais aqui.
-      const defaultAvatar = "https://api.dicebear.com/9.x/identicon/svg?seed=" + encodeURIComponent(email);
+      const defaultAvatar =
+        "https://api.dicebear.com/9.x/identicon/svg?seed=" +
+        encodeURIComponent(email);
+
       setUser({
         name: email.split("@")[0],
         email,
@@ -51,18 +56,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // ==============================================
+  // REGISTER (CORRIGIDO)
+  // ==============================================
+  const register = async (nome: string, email: string, senha: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ nome, email, senha }),
+      });
+
+      const data = await safeJson(res);
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Erro ao registrar");
+      }
+
+      const defaultAvatar =
+        "https://api.dicebear.com/9.x/identicon/svg?seed=" +
+        encodeURIComponent(email);
+
+      setUser({
+        name: data.nome,
+        email: data.email,
+        avatar: defaultAvatar,
+      });
+
+      navigate("/dashboard");
+    } catch (err: any) {
+      alert(err?.message || "Erro ao registrar usuário");
+    }
+  };
+
+  // ==============================================
+  // LOGOUT
+  // ==============================================
   const logout = async () => {
     try {
       const res = await fetch(`${API_BASE}/logout`, {
         method: "POST",
         credentials: "include",
       });
+
       if (!res.ok) {
         const err = await safeJson(res);
         throw new Error(err?.error || "Falha ao sair");
       }
     } catch (e: any) {
-      // mesmo que falhe, vamos limpar o estado local
       console.warn(e?.message || e);
     } finally {
       setUser(null);
@@ -70,8 +112,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // ==============================================
+  // PROVIDER
+  // ==============================================
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
@@ -79,7 +124,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth deve ser usado dentro de AuthProvider");
+  if (!context)
+    throw new Error("useAuth deve ser usado dentro de AuthProvider");
   return context;
 }
 

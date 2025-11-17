@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import Dashboard from "@/pages/Dashboard";
 import Login from "@/pages/Login";
+import Register from "@/pages/Register"; // ⬅ IMPORTANTE
 import Header from "@/components/Header";
 import { useState, type JSX } from "react";
 import PedidosPage from "./pages/Pedidos";
@@ -11,7 +12,6 @@ function ProtectedLayout() {
   const { user } = useAuth();
   const [page, setPage] = useState<string>("dashboard");
 
-  // Redireciona se não estiver autenticado
   if (!user) return <Navigate to="/" replace />;
 
   return (
@@ -37,7 +37,6 @@ function PrivateRoute({ children }: { children: JSX.Element }) {
 }
 
 export default function App() {
-  // Proteção e persistência da sessão via AuthContext
   return (
     <Router>
       <AuthProvider>
@@ -45,7 +44,10 @@ export default function App() {
           {/* Página de login */}
           <Route path="/" element={<Login />} />
 
-          {/* Rotas protegidas */}
+          {/* Página de registro */}
+          <Route path="/register" element={<Register />} />  {/* 👈 ADICIONADO */}
+
+          {/* Área protegida */}
           <Route
             path="/dashboard"
             element={
