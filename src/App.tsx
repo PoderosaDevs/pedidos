@@ -7,6 +7,7 @@ import Header from "@/components/Header";
 import { useState, type JSX } from "react";
 import PedidosPage from "./pages/Pedidos";
 import Footer from "./components/Footer";
+import Backoffice from "./pages/Backoffice";
 
 function ProtectedLayout() {
   const { user } = useAuth();
@@ -20,6 +21,7 @@ function ProtectedLayout() {
       <main className="flex-1 p-8 max-w-7xl mx-auto w-full">
         {page === "dashboard" && <Dashboard />}
         {page === "pedidos" && <PedidosPage />}
+        {page === "backoffice" && <Backoffice />}
       </main>
       <Footer />
     </div>

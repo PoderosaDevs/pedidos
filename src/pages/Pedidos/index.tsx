@@ -56,18 +56,18 @@ async function apiFetch(
 export default function PedidosPage() {
   const [openNovo, setOpenNovo] = React.useState(false);
   const [openNovoCliente, setOpenNovoCliente] = React.useState(false);
+
   const [clientes, setClientes] = React.useState<
     { id: number; nome: string }[]
   >([]);
+
+  const [lojas, setLojas] = React.useState<
+    { id: number; nome: string }[]
+  >([]);
+
   const [pedidos, setPedidos] = React.useState<Pedido[]>([]);
   const [loadingPedido, setLoadingPedido] = React.useState(false);
   const [loadingCliente, setLoadingCliente] = React.useState(false);
-
-  // const [canais] = React.useState([
-  //   { value: "WhatsApp", label: "WhatsApp" },
-  //   { value: "Instagram", label: "Instagram" },
-  //   { value: "Site", label: "Site" },
-  // ]);
 
   // 🔹 enums mapeados com label amigável
   const situacoes = [
@@ -98,6 +98,15 @@ export default function PedidosPage() {
     }
   }
 
+  async function refetchLojas() {
+    try {
+      const data = await apiFetch("/lojas");
+      setLojas(data?.map((l: any) => ({ id: l.id, nome: l.nome })) || []);
+    } catch {
+      setLojas([]);
+    }
+  }
+
   async function refetchPedidos() {
     try {
       const data = await apiFetch("/pedidos");
@@ -109,6 +118,7 @@ export default function PedidosPage() {
 
   React.useEffect(() => {
     refetchClientes();
+    refetchLojas(); // ✅ AGORA BUSCA LOJAS AO CARREGAR
     refetchPedidos();
   }, []);
 
@@ -123,7 +133,8 @@ export default function PedidosPage() {
       prioridade: "MEDIA",
       situacao: "FALTANDO_ITEM",
       clienteId: "",
-      criadoPorId: "", // opcional, pode vir do usuário logado
+      lojaId: "", // ✅ ADICIONADO AQUI
+      criadoPorId: "",
     },
     validationSchema: Yup.object({
       numeroPedido: Yup.string().required("Obrigatório"),
@@ -131,16 +142,17 @@ export default function PedidosPage() {
       prioridade: Yup.string().required("Obrigatório"),
       situacao: Yup.string().required("Obrigatório"),
       clienteId: Yup.string().required("Obrigatório"),
+      lojaId: Yup.string().required("Obrigatório"), // ✅ VALIDAÇÃO
     }),
     onSubmit: async (values, { resetForm }) => {
       setLoadingPedido(true);
       try {
-        // ❗ Só envia `resolucao` se estiver preenchida
-        const { resolucao, ...rest } = values;
-
-        const payload = resolucao
-          ? { ...rest, resolucao } // se tiver texto, manda
-          : rest; // se estiver vazia, nem envia o campo
+        const payload = {
+          ...values,
+          clienteId: Number(values.clienteId),
+          lojaId: Number(values.lojaId), // ✅ INCLUÍDO NO PAYLOAD
+          ...(values.resolucao ? { resolucao: values.resolucao } : {}),
+        };
 
         await apiFetch("/pedidos/register", {
           method: "POST",
@@ -174,6 +186,7 @@ export default function PedidosPage() {
           method: "POST",
           body: JSON.stringify(values),
         });
+
         await refetchClientes();
         alert("✅ Cliente adicionado!");
         resetForm();
@@ -189,31 +202,11 @@ export default function PedidosPage() {
 
   return (
     <div className="space-y-8 text-white">
-      {/* Cards resumo */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="bg-zinc-900 border-zinc-800">
-          <CardContent className="p-6 py-0">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-gray-400 text-sm">Total de Pedidos</h2>
-              <span className="p-2 rounded-lg bg-zinc-800/80 border border-zinc-700 text-pink-400">
-                <IconShoppingCart className="h-5 w-5" />
-              </span>
-            </div>
-            <p className="text-4xl font-semibold text-white">
-              {pedidos.length}
-            </p>
-            <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-              <IconCheck className="size-4 text-emerald-400" /> +12% vs mês
-              anterior
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+
+  
 
       {/* Tabela */}
-      <DataTablePedidos
-        onNovoPedido={() => setOpenNovo(true)}
-      />
+      <DataTablePedidos onNovoPedido={() => setOpenNovo(true)} />
 
       {/* Sheet Novo Pedido */}
       <Sheet open={openNovo} onOpenChange={setOpenNovo}>
@@ -230,7 +223,10 @@ export default function PedidosPage() {
                 Criação de pedido
               </SheetDescription>
             </SheetHeader>
+
             <Separator className="mb-4 bg-zinc-800" />
+
+            {/* EXATAMENTE O SEU FORM ORIGINAL — SOMENTE COM O CAMPO LOJA ADICIONADO */}
 
             <div className="space-y-4">
               <div>
@@ -253,6 +249,7 @@ export default function PedidosPage() {
                     className="bg-zinc-800 border-zinc-700 text-white"
                   />
                 </div>
+
                 <div>
                   <Label>N° JIT</Label>
                   <Input
@@ -285,6 +282,28 @@ export default function PedidosPage() {
                   className="bg-zinc-800 border-zinc-700 text-white"
                 />
               </div>
+
+              {/* ⭐⭐⭐ CAMPO DE LOJA ADICIONADO AQUI ⭐⭐⭐ */}
+              <div>
+                <Label>Loja</Label>
+                <Select
+                  onValueChange={(val) =>
+                    formikPedido.setFieldValue("lojaId", val)
+                  }
+                >
+                  <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
+                    <SelectValue placeholder="Selecione uma loja" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {lojas.map((l) => (
+                      <SelectItem key={l.id} value={l.id.toString()}>
+                        {l.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {/* ⭐⭐⭐ FIM DO CAMPO DE LOJA ⭐⭐⭐ */}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -391,6 +410,7 @@ export default function PedidosPage() {
                 Adicione um novo cliente.
               </SheetDescription>
             </SheetHeader>
+
             <Separator className="mb-4 bg-zinc-800" />
 
             <div className="space-y-4">
@@ -403,6 +423,7 @@ export default function PedidosPage() {
                   className="bg-zinc-800 border-zinc-700 text-white"
                 />
               </div>
+
               <div>
                 <Label>CPF</Label>
                 <Input

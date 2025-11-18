@@ -52,6 +52,16 @@ export default function Header({ page, setPage }: HeaderProps) {
           >
             Pedidos
           </Button>
+          <Button
+            className={`text-lg font-medium transition ${
+              page === "backoffice"
+                ? "text-pink-400 border-b-2 border-pink-500 rounded-none bg-transparent"
+                : "text-gray-400 bg-transparent hover:text-pink-400 cursor-pointer"
+            }`}
+            onClick={() => handleNav("backoffice")}
+          >
+            Backoffice
+          </Button>
         </nav>
 
         {/* Profile */}

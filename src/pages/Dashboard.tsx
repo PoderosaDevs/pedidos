@@ -33,9 +33,12 @@ const clientesData = [
 export default function Dashboard() {
   return (
     <div>
-
+      <div className="">
+        <h1 className="text-3xl font-semibold text-white mb-6">Dashboard</h1>
+        <span>Seja bem vindo(a) Ketlin Lima</span>
+      </div>
       {/* Cards KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 xl:grid-cols-4 gap-6">
         <Card className="bg-zinc-900 border-zinc-800">
           <CardHeader>
             <CardTitle className="text-gray-100 text-lg">Vendas Totais</CardTitle>
@@ -76,15 +79,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-zinc-900 border-zinc-800">
-          <CardHeader>
-            <CardTitle className="text-gray-100 text-lg">Lucro</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between">
-            <p className="text-3xl font-semibold text-white">R$ 3.280</p>
-            <DollarSign className="text-emerald-400" size={30} />
-          </CardContent>
-        </Card>
       </div>
 
       {/* Separator entre KPIs e Charts */}
