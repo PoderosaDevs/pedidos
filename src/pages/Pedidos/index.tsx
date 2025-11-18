@@ -1,8 +1,6 @@
 import * as React from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { Card, CardContent } from "@/components/ui/card";
-import { IconCheck, IconShoppingCart } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -68,7 +66,7 @@ export default function PedidosPage() {
   const [pedidos, setPedidos] = React.useState<Pedido[]>([]);
   const [loadingPedido, setLoadingPedido] = React.useState(false);
   const [loadingCliente, setLoadingCliente] = React.useState(false);
-
+  console.log("Pedidos:", pedidos);
   // 🔹 enums mapeados com label amigável
   const situacoes = [
     { value: "ALTERACAO_DE_ENDERECO", label: "Alteração de endereço" },
