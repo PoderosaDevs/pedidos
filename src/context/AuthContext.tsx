@@ -2,7 +2,9 @@ import { createContext, useContext, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 
 const API_BASE =
-  import.meta.env.VITE_API_URL?.replace(/\/$/, "") ?? "http://localhost:3000/usuarios";
+  import.meta.env.VITE_API_URL?.replace(/\/$/, "").concat("/usuarios") ??
+  "http://localhost:3000/usuarios";
+
 
 interface User {
   name: string;
