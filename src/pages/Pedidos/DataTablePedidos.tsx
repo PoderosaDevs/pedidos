@@ -42,7 +42,6 @@ import {
   SheetTrigger,
   SheetFooter,
   SheetClose,
-  SheetDescription,
 } from "@/components/ui/sheet";
 
 import {
@@ -55,8 +54,6 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
 } from "@/components/ui/alert-dialog";
-
-import { Separator } from "@/components/ui/separator";
 
 /* =========================================================
  *  TIPOS E ENUMS
