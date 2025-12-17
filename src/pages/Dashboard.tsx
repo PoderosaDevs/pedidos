@@ -33,9 +33,9 @@ const clientesData = [
 export default function Dashboard() {
   return (
     <div>
-      <div className="">
+      <div className="pb-4">
         <h1 className="text-3xl font-semibold text-white mb-6">Dashboard</h1>
-        <span>Seja bem vindo(a) Ketlin Lima</span>
+        <span className="text-2xl text-white pb-4">Seja bem vindo(a) <span className="text-pink-400 font-bold">Ketlin Lima</span></span>
       </div>
       {/* Cards KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-4 xl:grid-cols-4 gap-6">

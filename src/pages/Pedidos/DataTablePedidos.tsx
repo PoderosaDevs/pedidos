@@ -104,6 +104,13 @@ export type Loja = {
   nome: string;
 };
 
+export type HistoricoPedido = {
+  id: number;
+  data: string;
+  descricao: string;
+  pedidoId: number;
+};
+
 export type Pedido = {
   id: number;
   numeroPedido: string;
@@ -123,6 +130,7 @@ export type Pedido = {
   loja?: Loja | null;
   criadoPorId?: number | null;
   criadoPor?: Usuario | null;
+  historico?: HistoricoPedido[]; // ⬅ histórico vindo do backend
 };
 
 /* =========================================================
@@ -160,9 +168,14 @@ function fmtData(value?: string | Date | null) {
   return d.toLocaleDateString("pt-BR");
 }
 
-function Pill({ children, tone = "neutral" }: { children: React.ReactNode; tone?: "neutral" | "success" | "danger" }) {
-  const base =
-    "px-2 py-0.5 rounded border text-xs";
+function Pill({
+  children,
+  tone = "neutral",
+}: {
+  children: React.ReactNode;
+  tone?: "neutral" | "success" | "danger";
+}) {
+  const base = "px-2 py-0.5 rounded border text-xs";
   const tones: Record<typeof tone, string> = {
     neutral: "bg-zinc-800 border-zinc-700 text-gray-100",
     success: "bg-emerald-900/50 border-emerald-500/60 text-emerald-200",
@@ -236,7 +249,15 @@ export const getColumns = (handlers: {
     header: "Prioridade",
     cell: ({ row }) => {
       const p = row.original.prioridade;
-      return p ? <Pill tone={p === "ALTA" ? "danger" : p === "MEDIA" ? "neutral" : "neutral"}>{prioridadeLabel[p]}</Pill> : "—";
+      return p ? (
+        <Pill
+          tone={p === "ALTA" ? "danger" : p === "MEDIA" ? "neutral" : "neutral"}
+        >
+          {prioridadeLabel[p]}
+        </Pill>
+      ) : (
+        "—"
+      );
     },
   },
   {
@@ -272,7 +293,11 @@ export const getColumns = (handlers: {
       const s = row.original.situation;
       if (!s) return "—";
       const tone: "neutral" | "success" | "danger" =
-        s === "FINALIZADO" ? "success" : s === "ATRASADO" ? "danger" : "neutral";
+        s === "FINALIZADO"
+          ? "success"
+          : s === "ATRASADO"
+          ? "danger"
+          : "neutral";
       return <Pill tone={tone}>{situationLabel[s]}</Pill>;
     },
   },
@@ -329,7 +354,6 @@ export const columns: ColumnDef<Pedido>[] = getColumns({
   onAddUpdate: () => {},
   onFinalize: () => {},
 });
-
 /* =========================================================
  *  COMPONENTE PRINCIPAL
  * =======================================================*/
@@ -408,6 +432,21 @@ export function DataTablePedidos({
     fetchPedidos();
   }, [fetchPedidos]);
 
+  // Buscar pedido específico para o modal de detalhes
+  const fetchPedidoById = React.useCallback(async (id: number) => {
+    try {
+      const res = await fetch(`${API_BASE}/pedidos/${id}`, {
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(`Erro ${res.status}`);
+      const pedido: Pedido = await res.json();
+      setSelectedPedido(pedido);
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao buscar detalhes do pedido.");
+    }
+  }, []);
+
   // Sempre que mudar filtro, volta para a primeira página
   React.useEffect(() => {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
@@ -448,9 +487,7 @@ export function DataTablePedidos({
       // Loja
       if (
         filters.loja &&
-        !pedido.loja?.nome
-          ?.toLowerCase()
-          .includes(filters.loja.toLowerCase())
+        !pedido.loja?.nome?.toLowerCase().includes(filters.loja.toLowerCase())
       ) {
         return false;
       }
@@ -496,7 +533,7 @@ export function DataTablePedidos({
   const tableColumns = React.useMemo(
     () =>
       getColumns({
-        onView: (pedido) => setSelectedPedido(pedido),
+        onView: (pedido) => fetchPedidoById(pedido.id),
         onAddUpdate: (pedido) => {
           setUpdateModal({ open: true, pedido });
           setUpdateText("");
@@ -506,7 +543,7 @@ export function DataTablePedidos({
           setFinalText("");
         },
       }),
-    []
+    [fetchPedidoById]
   );
 
   const table = useReactTable({
@@ -589,144 +626,130 @@ export function DataTablePedidos({
       alert("Erro ao finalizar pedido.");
     }
   }
-
   return (
     <>
-      {/* Sheet de detalhes do pedido */}
-      <Sheet
+      {/* Modal — Detalhes do Pedido + Histórico */}
+      <AlertDialog
         open={!!selectedPedido}
         onOpenChange={(open) => {
           if (!open) setSelectedPedido(null);
         }}
       >
-        <SheetContent
-          side="right"
-          className="bg-zinc-900 text-gray-100 border-l border-zinc-800 w-[450px] px-6 py-6"
-        >
-          <SheetHeader>
-            <SheetTitle className="text-2xl">
-              Pedido{" "}
-              {selectedPedido?.numeroPedido
-                ? `#${selectedPedido.numeroPedido}`
-                : selectedPedido
-                ? `#${selectedPedido.id}`
-                : ""}
-            </SheetTitle>
-            <SheetDescription className="text-gray-400">
-              Visão detalhada do pedido selecionado.
-            </SheetDescription>
-          </SheetHeader>
-
-          <Separator className="my-4 bg-zinc-800" />
+        <AlertDialogContent className="bg-zinc-900 border border-zinc-800 text-gray-100 max-w-2xl max-h-[90vh] overflow-y-auto">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-2xl">
+              Pedido #{selectedPedido?.numeroPedido ?? selectedPedido?.id}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-400">
+              Detalhes completos e histórico de atualizações.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
 
           {selectedPedido && (
-            <div className="space-y-4 text-sm">
-              <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-6 mt-4">
+              {/* Dados principais */}
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-gray-400">Nº Pedido</p>
+                  <p className="text-gray-400 text-sm">Cliente</p>
                   <p className="font-semibold">
-                    {selectedPedido.numeroPedido ?? "—"}
+                    {selectedPedido.cliente?.nome || "—"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-400">Nº Chamado</p>
-                  <p>{selectedPedido.numeroChamado || "—"}</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-gray-400">Nº JIT</p>
-                  <p>{selectedPedido.numeroJit || "—"}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Loja</p>
+                  <p className="text-gray-400 text-sm">Loja</p>
                   <p className="font-semibold">
                     {selectedPedido.loja?.nome || "—"}
                   </p>
                 </div>
-              </div>
 
-              <div>
-                <p className="text-gray-400">Cliente</p>
-                <p className="font-semibold">
-                  {selectedPedido.cliente?.nome || "—"}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-gray-400">Prioridade</p>
-                  <p className="font-semibold">
+                  <p className="text-gray-400 text-sm">Prioridade</p>
+                  <p>
                     {selectedPedido.prioridade
                       ? prioridadeLabel[selectedPedido.prioridade]
                       : "—"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-400">Motivo</p>
-                  <p className="font-semibold">
+                  <p className="text-gray-400 text-sm">Motivo</p>
+                  <p>
                     {selectedPedido.situacao
                       ? situacaoLabel[selectedPedido.situacao]
                       : "—"}
                   </p>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-gray-400">Situação</p>
-                  <p>
-                    {selectedPedido.situation
-                      ? situationLabel[selectedPedido.situation]
-                      : "—"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Início</p>
+                  <p className="text-gray-400 text-sm">Início</p>
                   <p>{fmtData(selectedPedido.dataInicio)}</p>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-gray-400">Atualização</p>
+                  <p className="text-gray-400 text-sm">Última atualização</p>
                   <p>{fmtData(selectedPedido.dataAtualizacao)}</p>
                 </div>
-                <div>
-                  <p className="text-gray-400">Finalização</p>
-                  <p>{fmtData(selectedPedido.dataFinalizacao)}</p>
-                </div>
               </div>
 
+              {/* Descrição */}
               <div>
-                <p className="text-gray-400">Descrição</p>
+                <p className="text-gray-400 text-sm">Descrição</p>
                 <p>{selectedPedido.descricao || "—"}</p>
               </div>
 
+              {/* Resolução */}
               {selectedPedido.resolucao && (
                 <div>
-                  <p className="text-gray-400">Resolução final</p>
+                  <p className="text-gray-400 text-sm">Resolução</p>
                   <p>{selectedPedido.resolucao}</p>
                 </div>
               )}
 
+              {/* Histórico */}
               <div>
-                <p className="text-gray-400">Criado por</p>
-                <p>{selectedPedido.criadoPor?.nome || "—"}</p>
+                <p className="text-gray-400 text-sm mb-2">
+                  Histórico de Atualizações
+                </p>
+
+                <div className="space-y-3 border border-zinc-700 rounded-md p-3 max-h-64 overflow-y-auto">
+                  {selectedPedido.historico?.length ? (
+                    [...selectedPedido.historico]
+                      .sort(
+                        (a, b) =>
+                          new Date(a.data).getTime() -
+                          new Date(b.data).getTime()
+                      )
+                      .map((h) => (
+                        <div
+                          key={h.id}
+                          className="bg-zinc-800 p-3 rounded-md shadow"
+                        >
+                          <p className="text-sm font-medium">
+                            {h.descricao || "—"}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {fmtData(h.data)}
+                          </p>
+                        </div>
+                      ))
+                  ) : (
+                    <p className="text-gray-500 text-sm">
+                      Nenhuma atualização registrada.
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           )}
 
-          <SheetFooter className="mt-6">
-            <SheetClose asChild>
-              <button className="bg-zinc-800 border border-zinc-700 text-gray-200 px-4 py-2 rounded hover:bg-zinc-700 cursor-pointer">
-                Fechar
-              </button>
-            </SheetClose>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
+          <AlertDialogFooter className="mt-6">
+            <AlertDialogAction
+              onClick={() => setSelectedPedido(null)}
+              className="bg-zinc-700 hover:bg-zinc-600 text-white"
+            >
+              Fechar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Modal: Adicionar atualização */}
       <AlertDialog open={updateModal.open}>
@@ -910,13 +933,11 @@ export function DataTablePedidos({
                       className="h-9 rounded-md border border-zinc-700 bg-zinc-900 px-2 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-pink-500/60"
                     >
                       <option value="">Todas</option>
-                      {Object.entries(prioridadeLabel).map(
-                        ([value, label]) => (
-                          <option key={value} value={value}>
-                            {label}
-                          </option>
-                        )
-                      )}
+                      {Object.entries(prioridadeLabel).map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -1066,7 +1087,6 @@ export function DataTablePedidos({
             </Button>
           </div>
         </CardHeader>
-
         <CardContent className="flex-1 p-0 overflow-hidden">
           <div className="h-full overflow-auto">
             {loading ? (
