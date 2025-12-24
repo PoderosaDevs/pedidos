@@ -26,13 +26,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 
-import {
-  IconPlus,
-  IconLayoutColumns,
-  IconRefresh,
-  IconEye,
-  IconFilter,
-} from "@tabler/icons-react";
+import { IconPlus, IconLayoutColumns, IconRefresh, IconEye, IconFilter } from "@tabler/icons-react";
 
 import {
   Sheet,
@@ -127,7 +121,7 @@ export type Pedido = {
   loja?: Loja | null;
   criadoPorId?: number | null;
   criadoPor?: Usuario | null;
-  historico?: HistoricoPedido[]; // ⬅ histórico vindo do backend
+  historico?: HistoricoPedido[];
 };
 
 /* =========================================================
@@ -306,7 +300,6 @@ export const getColumns = (handlers: {
 
       return (
         <div className="flex items-center gap-2 justify-center">
-          {/* Botão Ver (abre modal completo) */}
           <button
             className="flex items-center bg-blue-600 px-3 py-1 rounded-xl text-white hover:bg-blue-700 cursor-pointer text-xs"
             onClick={() => handlers.onView(pedido)}
@@ -314,7 +307,6 @@ export const getColumns = (handlers: {
             <IconEye className="w-4 h-4 mr-1" /> Ver
           </button>
 
-          {/* Botão Situação (menu com ações) */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex items-center bg-zinc-700 px-3 py-1 rounded-xl text-white hover:bg-zinc-600 cursor-pointer text-xs">
@@ -345,12 +337,6 @@ export const getColumns = (handlers: {
   },
 ];
 
-// export “estático” caso precise em outro lugar
-export const columns: ColumnDef<Pedido>[] = getColumns({
-  onView: () => {},
-  onAddUpdate: () => {},
-  onFinalize: () => {},
-});
 /* =========================================================
  *  COMPONENTE PRINCIPAL
  * =======================================================*/
@@ -388,14 +374,12 @@ export function DataTablePedidos({
     null
   );
 
-  // modal de atualização
   const [updateModal, setUpdateModal] = React.useState<{
     open: boolean;
     pedido: Pedido | null;
   }>({ open: false, pedido: null });
   const [updateText, setUpdateText] = React.useState("");
 
-  // modal de finalização
   const [finalModal, setFinalModal] = React.useState<{
     open: boolean;
     pedido: Pedido | null;
@@ -429,7 +413,6 @@ export function DataTablePedidos({
     fetchPedidos();
   }, [fetchPedidos]);
 
-  // Buscar pedido específico para o modal de detalhes
   const fetchPedidoById = React.useCallback(async (id: number) => {
     try {
       const res = await fetch(`${API_BASE}/pedidos/${id}`, {
@@ -444,14 +427,12 @@ export function DataTablePedidos({
     }
   }, []);
 
-  // Sempre que mudar filtro, volta para a primeira página
   React.useEffect(() => {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [filters]);
 
   const filteredData = React.useMemo(() => {
     return data.filter((pedido) => {
-      // Nº Pedido
       if (
         filters.numeroPedido &&
         !pedido.numeroPedido
@@ -461,17 +442,14 @@ export function DataTablePedidos({
         return false;
       }
 
-      // Prioridade
       if (filters.prioridade && pedido.prioridade !== filters.prioridade) {
         return false;
       }
 
-      // Situação (motivo)
       if (filters.situacao && pedido.situacao !== filters.situacao) {
         return false;
       }
 
-      // Cliente
       if (
         filters.cliente &&
         !pedido.cliente?.nome
@@ -481,7 +459,6 @@ export function DataTablePedidos({
         return false;
       }
 
-      // Loja
       if (
         filters.loja &&
         !pedido.loja?.nome?.toLowerCase().includes(filters.loja.toLowerCase())
@@ -489,7 +466,6 @@ export function DataTablePedidos({
         return false;
       }
 
-      // Usuário criador
       if (
         filters.criadoPor &&
         !pedido.criadoPor?.nome
@@ -499,7 +475,6 @@ export function DataTablePedidos({
         return false;
       }
 
-      // Data de início
       if (
         (filters.dataInicioDe || filters.dataInicioAte) &&
         !isWithinRange(
@@ -511,7 +486,6 @@ export function DataTablePedidos({
         return false;
       }
 
-      // Atualização
       if (
         (filters.atualizacaoDe || filters.atualizacaoAte) &&
         !isWithinRange(
@@ -623,6 +597,7 @@ export function DataTablePedidos({
       alert("Erro ao finalizar pedido.");
     }
   }
+
   return (
     <>
       {/* Modal — Detalhes do Pedido + Histórico */}
@@ -644,7 +619,6 @@ export function DataTablePedidos({
 
           {selectedPedido && (
             <div className="space-y-6 mt-4">
-              {/* Dados principais */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-gray-400 text-sm">Cliente</p>
@@ -686,13 +660,11 @@ export function DataTablePedidos({
                 </div>
               </div>
 
-              {/* Descrição */}
               <div>
                 <p className="text-gray-400 text-sm">Descrição</p>
                 <p>{selectedPedido.descricao || "—"}</p>
               </div>
 
-              {/* Resolução */}
               {selectedPedido.resolucao && (
                 <div>
                   <p className="text-gray-400 text-sm">Resolução</p>
@@ -700,7 +672,6 @@ export function DataTablePedidos({
                 </div>
               )}
 
-              {/* Histórico */}
               <div>
                 <p className="text-gray-400 text-sm mb-2">
                   Histórico de Atualizações
@@ -873,9 +844,7 @@ export function DataTablePedidos({
               onClick={fetchPedidos}
               disabled={loading}
             >
-              <IconRefresh
-                className={loading ? "animate-spin text-pink-400" : ""}
-              />{" "}
+              <IconRefresh className={loading ? "animate-spin text-pink-400" : ""} />{" "}
               Atualizar
             </Button>
 
@@ -896,6 +865,7 @@ export function DataTablePedidos({
                   )}
                 </Button>
               </SheetTrigger>
+
               <SheetContent
                 side="right"
                 className="bg-zinc-900 border-l border-zinc-800 text-gray-100 px-4 w-full sm:w-[380px]"
@@ -938,7 +908,7 @@ export function DataTablePedidos({
                     </select>
                   </div>
 
-                  {/* Situação (motivo) */}
+                  {/* Situação */}
                   <div className="flex flex-col gap-1">
                     <label className="text-xs text-gray-400">Motivo</label>
                     <select
@@ -985,11 +955,9 @@ export function DataTablePedidos({
                     />
                   </div>
 
-                  {/* Usuário criador */}
+                  {/* Criado por */}
                   <div className="flex flex-col gap-1">
-                    <label className="text-xs text-gray-400">
-                      Usuário criador
-                    </label>
+                    <label className="text-xs text-gray-400">Usuário criador</label>
                     <input
                       type="text"
                       value={filters.criadoPor}
@@ -1001,7 +969,7 @@ export function DataTablePedidos({
                     />
                   </div>
 
-                  {/* Data de início */}
+                  {/* Data Inicio */}
                   <div className="flex flex-col gap-1">
                     <label className="text-xs text-gray-400">
                       Data de início (intervalo)
@@ -1084,6 +1052,7 @@ export function DataTablePedidos({
             </Button>
           </div>
         </CardHeader>
+
         <CardContent className="flex-1 p-0 overflow-hidden">
           <div className="h-full overflow-auto">
             {loading ? (
@@ -1093,55 +1062,126 @@ export function DataTablePedidos({
             ) : error ? (
               <div className="text-center text-red-400 py-6">{error}</div>
             ) : (
-              <Table className="min-w-full text-center border-collapse">
-                <TableHeader className="sticky top-0 bg-zinc-800/90 backdrop-blur border-b border-zinc-700 z-10">
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <TableHead
-                          key={header.id}
-                          className="text-gray-100 text-center font-medium py-3"
-                        >
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows?.length ? (
-                    table.getRowModel().rows.map((row) => (
-                      <TableRow key={row.id}>
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell
-                            key={cell.id}
-                            className="py-3 text-gray-300"
+              <>
+                <Table className="min-w-full text-center border-collapse">
+                  <TableHeader className="sticky top-0 bg-zinc-800/90 backdrop-blur border-b border-zinc-700 z-10">
+                    {table.getHeaderGroups().map((headerGroup) => (
+                      <TableRow key={headerGroup.id}>
+                        {headerGroup.headers.map((header) => (
+                          <TableHead
+                            key={header.id}
+                            className="text-gray-100 text-center font-medium py-3"
                           >
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </TableCell>
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext()
+                                )}
+                          </TableHead>
                         ))}
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={tableColumns.length}
-                        className="h-24 text-center text-gray-400"
-                      >
-                        Nenhum pedido encontrado.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                    ))}
+                  </TableHeader>
+
+                  <TableBody>
+                    {table.getRowModel().rows?.length ? (
+                      table.getRowModel().rows.map((row) => (
+                        <TableRow key={row.id}>
+                          {row.getVisibleCells().map((cell) => (
+                            <TableCell
+                              key={cell.id}
+                              className="py-3 text-gray-300"
+                            >
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext()
+                              )}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell
+                          colSpan={tableColumns.length}
+                          className="h-24 text-center text-gray-400"
+                        >
+                          Nenhum pedido encontrado.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+
+                {/* ✅ PAGINAÇÃO + CONTAGEM */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-zinc-800 bg-zinc-900">
+                  <p className="text-sm text-gray-400">
+                    Exibindo{" "}
+                    <span className="text-white font-semibold">
+                      {table.getRowModel().rows.length}
+                    </span>{" "}
+                    de{" "}
+                    <span className="text-white font-semibold">
+                      {filteredData.length}
+                    </span>{" "}
+                    pedidos filtrados{" "}
+                    <span className="text-gray-500">(Total: {data.length})</span>
+                  </p>
+
+                  <div className="flex items-center gap-2">
+                    {/* Page Size */}
+                    <select
+                      value={pagination.pageSize}
+                      onChange={(e) =>
+                        setPagination((prev) => ({
+                          ...prev,
+                          pageSize: Number(e.target.value),
+                          pageIndex: 0,
+                        }))
+                      }
+                      className="h-9 rounded-md border border-zinc-700 bg-zinc-900 px-2 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-pink-500/60"
+                    >
+                      {[5, 10, 20, 50].map((size) => (
+                        <option key={size} value={size}>
+                          {size}/página
+                        </option>
+                      ))}
+                    </select>
+
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="bg-zinc-800 border-zinc-700 text-gray-200 hover:bg-zinc-700"
+                      onClick={() => table.previousPage()}
+                      disabled={!table.getCanPreviousPage()}
+                    >
+                      Anterior
+                    </Button>
+
+                    <span className="text-sm text-gray-300">
+                      Página{" "}
+                      <span className="font-semibold text-white">
+                        {pagination.pageIndex + 1}
+                      </span>{" "}
+                      de{" "}
+                      <span className="font-semibold text-white">
+                        {table.getPageCount()}
+                      </span>
+                    </span>
+
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="bg-zinc-800 border-zinc-700 text-gray-200 hover:bg-zinc-700"
+                      onClick={() => table.nextPage()}
+                      disabled={!table.getCanNextPage()}
+                    >
+                      Próximo
+                    </Button>
+                  </div>
+                </div>
+              </>
             )}
           </div>
         </CardContent>
