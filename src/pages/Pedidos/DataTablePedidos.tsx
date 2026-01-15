@@ -48,6 +48,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
 } from "@/components/ui/alert-dialog";
+import { CalendarClock, History, MessageSquare } from "lucide-react";
 
 /* =========================================================
  *  TIPOS E ENUMS
@@ -672,36 +673,68 @@ export function DataTablePedidos({
                 </div>
               )}
 
-              <div>
-                <p className="text-gray-400 text-sm mb-2">
-                  Histórico de Atualizações
-                </p>
+              <div className="mt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <History className="w-4 h-4 text-pink-500" />
+                  <h3 className="text-sm font-semibold text-gray-200">
+                    Linha do Tempo
+                  </h3>
+                </div>
 
-                <div className="space-y-3 border border-zinc-700 rounded-md p-3 max-h-64 overflow-y-auto">
+                <div className="bg-zinc-950/50 border border-zinc-800/60 rounded-lg p-4 max-h-[350px] overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-zinc-700 [&::-webkit-scrollbar-track]:bg-zinc-900/50">
                   {selectedPedido.historico?.length ? (
-                    [...selectedPedido.historico]
-                      .sort(
-                        (a, b) =>
-                          new Date(a.data).getTime() -
-                          new Date(b.data).getTime()
-                      )
-                      .map((h) => (
-                        <div
-                          key={h.id}
-                          className="bg-zinc-800 p-3 rounded-md shadow"
-                        >
-                          <p className="text-sm font-medium">
-                            {h.descricao || "—"}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-1">
-                            {fmtData(h.data)}
-                          </p>
-                        </div>
-                      ))
+                    <div className="relative space-y-6 pl-2">
+                      {/* Linha vertical contínua de fundo */}
+                      <div className="absolute left-[7px] top-2 bottom-2 w-[2px] bg-zinc-800" />
+
+                      {selectedPedido.historico
+                        .sort(
+                          (a, b) =>
+                            new Date(b.data).getTime() -
+                            new Date(a.data).getTime()
+                        )
+                        .map((h, index) => (
+                          <div key={h.id} className="relative flex gap-4 group">
+                            {/* Bolinha da timeline */}
+                            <div className="relative z-10 flex-none mt-1">
+                              <div
+                                className={`w-4 h-4 rounded-full border-2 border-zinc-900 ${
+                                  index === 0
+                                    ? "bg-pink-500 shadow-[0_0_10px_rgba(236,72,153,0.3)]"
+                                    : "bg-zinc-600 group-hover:bg-zinc-500 transition-colors"
+                                }`}
+                              />
+                            </div>
+
+                            {/* Conteúdo do Card */}
+                            <div className="flex-1 bg-zinc-900/80 border border-zinc-800 p-3 rounded-lg hover:border-zinc-700 transition-all group-hover:bg-zinc-800/80">
+                              <div className="flex items-start gap-3">
+                                <div className="mt-0.5 p-1.5 bg-zinc-950 rounded text-zinc-400">
+                                  <MessageSquare size={14} />
+                                </div>
+                                <div className="flex-1">
+                                  <p className="text-sm text-gray-200 leading-relaxed">
+                                    {h.descricao || "Atualização sem descrição"}
+                                  </p>
+                                  <div className="flex items-center gap-1.5 mt-2 text-xs text-zinc-500 font-medium">
+                                    <CalendarClock size={12} />
+                                    {fmtData(h.data)}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
                   ) : (
-                    <p className="text-gray-500 text-sm">
-                      Nenhuma atualização registrada.
-                    </p>
+                    <div className="flex flex-col items-center justify-center py-10 text-center space-y-3 opacity-60">
+                      <div className="p-3 bg-zinc-900 rounded-full">
+                        <History className="w-6 h-6 text-zinc-500" />
+                      </div>
+                      <p className="text-sm text-zinc-400">
+                        Nenhum registro no histórico.
+                      </p>
+                    </div>
                   )}
                 </div>
               </div>
