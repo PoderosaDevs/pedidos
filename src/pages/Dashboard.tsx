@@ -33,8 +33,8 @@ import {
   History,
   CalendarClock,
   MessageSquare,
-  ChevronLeft, // Novo
-  ChevronRight, // Novo
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 /* ============================
@@ -105,7 +105,6 @@ export default function Dashboard() {
   /* ============================
       ESTADOS GERAIS
   ============================ */
-  const [todosPedidos, setTodosPedidos] = useState<PedidoSummary[]>([]);
   const [listaTabela, setListaTabela] = useState<PedidoSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -128,11 +127,13 @@ export default function Dashboard() {
   const [selectedPedido, setSelectedPedido] = useState<PedidoDetalhado | null>(
     null
   );
+
   const [updateModal, setUpdateModal] = useState<{
     open: boolean;
     pedidoId: number | null;
   }>({ open: false, pedidoId: null });
   const [updateText, setUpdateText] = useState("");
+
   const [finalModal, setFinalModal] = useState<{
     open: boolean;
     pedidoId: number | null;
@@ -257,7 +258,7 @@ export default function Dashboard() {
     });
 
     setKpis(stats);
-    setTodosPedidos(dados);
+    // REMOVIDO: setTodosPedidos(dados); - Não era utilizado
 
     const pendentes = dados.filter(
       (p) => p.situation !== "FINALIZADO" && p.situation !== "CANCELADO"
