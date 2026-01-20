@@ -25,7 +25,7 @@ import { DataTablePedidos } from "./DataTablePedidos";
 import type { Pedido } from "./types";
 
 const API_BASE =
-  import.meta.env.VITE_API_URL?.replace(/\/$/, "") ?? "http://localhost:3000";
+  import.meta.env.VITE_API_URL?.replace(/\/$/, "") ?? "https://api-pedidos-w1sg.onrender.com";
 
 // 🔹 utilitário para fetch com cookie
 async function apiFetch(

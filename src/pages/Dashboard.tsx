@@ -40,7 +40,7 @@ import {
 /* ============================
    CONSTANTES E HELPERS DO MODAL
 ============================ */
-const API_BASE = "http://localhost:3000";
+const API_BASE = "https://api-pedidos-w1sg.onrender.com";
 
 const prioridadeLabel: Record<string, string> = {
   BAIXA: "Baixa",

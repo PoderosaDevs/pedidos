@@ -1,10 +1,10 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
-// Define a URL base (ex: http://localhost:3000/usuarios)
+// Define a URL base (ex: https://api-pedidos-w1sg.onrender.com/usuarios)
 const API_BASE =
   import.meta.env.VITE_API_URL?.replace(/\/$/, "").concat("/usuarios") ??
-  "http://localhost:3000/usuarios";
+  "https://api-pedidos-w1sg.onrender.com/usuarios";
 
 // Tipo do Usuário
 interface User {

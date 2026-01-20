@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 const API_BASE =
-  import.meta.env.VITE_API_URL?.replace(/\/$/, "") ?? "http://localhost:3000";
+  import.meta.env.VITE_API_URL?.replace(/\/$/, "") ?? "https://api-pedidos-w1sg.onrender.com";
 
 export default function useModuleCrud(endpoint: string) {
   const [items, setItems] = useState<any[]>([]);

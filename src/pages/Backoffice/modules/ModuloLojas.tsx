@@ -24,7 +24,7 @@ import { IconPlus, IconPencil, IconTrash } from "@tabler/icons-react";
 import { IconArrowLeft } from "@tabler/icons-react";
 
 const API_BASE =
-  import.meta.env.VITE_API_URL?.replace(/\/$/, "") ?? "http://localhost:3000";
+  import.meta.env.VITE_API_URL?.replace(/\/$/, "") ?? "https://api-pedidos-w1sg.onrender.com";
 
 async function apiFetch(endpoint: string, options: RequestInit = {}) {
   const res = await fetch(`${API_BASE}${endpoint}`, {
